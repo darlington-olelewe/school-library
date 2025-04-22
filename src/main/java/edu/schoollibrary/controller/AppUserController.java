@@ -2,6 +2,9 @@ package edu.schoollibrary.controller;
 
 import edu.schoollibrary.entity.AppUser;
 import edu.schoollibrary.request.CreateUserPojo;
+import edu.schoollibrary.request.LoginRequest;
+import edu.schoollibrary.response.AppResponse;
+import edu.schoollibrary.response.CodeAndMessage;
 import edu.schoollibrary.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -9,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -17,9 +21,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class AppUserController {
   private final UserService userService;
 
-  @PostMapping("/create-user")
-  public ResponseEntity<String> createUser(@RequestBody CreateUserPojo createUserPojo) {
+
+  @ResponseStatus(HttpStatus.OK)
+  @PostMapping("/login")
+  public AppResponse<AppUser> loginUser(@RequestBody LoginRequest loginRequest) {
+    return userService.login(loginRequest);
+  }
+
+  @ResponseStatus(HttpStatus.CREATED)
+  @PostMapping("/sign-up")
+  public CodeAndMessage createUser(@RequestBody CreateUserPojo createUserPojo) {
     userService.createUser(createUserPojo);
-    return new ResponseEntity<>(HttpStatus.CREATED);
+    return new CodeAndMessage("00", "User created successfully");
   }
 }
