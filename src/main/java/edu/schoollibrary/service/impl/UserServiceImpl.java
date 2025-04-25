@@ -42,6 +42,7 @@ public class UserServiceImpl implements UserService {
     if(appUser == null){
       throw new AppException("Invalid Email Or Password", "99");
     }
+    appUser.setPassword("** hidden **");
     AppResponse<AppUser> appResponse = new AppResponse<>();
     appResponse.setData(appUser);
     appResponse.setCode("00");
