@@ -49,4 +49,25 @@ public class UserServiceImpl implements UserService {
     appResponse.setMessage("Success");
     return appResponse;
   }
+
+  @Override
+  public AppUser getUserById(Long id) {
+    return appUserRepository.findById(id).orElseThrow(() -> new AppException("User not found", "99"));
+  }
+
+  @Override
+  public void isAdmin(Long id) {
+    AppUser user = getUserById(id);
+    if(!user.getRole().equalsIgnoreCase("ADMIN")){
+      throw new AppException("User is not an admin", "99");
+    }
+  }
+
+  @Override
+  public void isStudent(Long id) {
+    AppUser user = getUserById(id);
+    if(!user.getRole().equalsIgnoreCase("STUDENT")){
+      throw new AppException("User is not a student", "99");
+    }
+  }
 }
