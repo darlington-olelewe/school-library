@@ -141,6 +141,7 @@ public class BookServiceImpl implements BookService {
     BookTracker bookTracker = BookTracker.builder()
         .bookId(request.getBookId())
         .count(1)
+        .userId(request.getRequesterId())
         .pickUpDate(LocalDateTime.now())
         .returned("FALSE")
         .build();
