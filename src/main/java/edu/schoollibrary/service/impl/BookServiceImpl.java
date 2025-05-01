@@ -5,7 +5,7 @@ import edu.schoollibrary.entity.BookInventory;
 import edu.schoollibrary.entity.BookTracker;
 import edu.schoollibrary.exception.AppException;
 import edu.schoollibrary.projection.BookProjection;
-import edu.schoollibrary.repository.AppUserRepository;
+import edu.schoollibrary.projection.BookProjectionWithCount;
 import edu.schoollibrary.repository.BookInventoryRepository;
 import edu.schoollibrary.repository.BookRepository;
 import edu.schoollibrary.repository.BookTrackerRepository;
@@ -103,9 +103,9 @@ public class BookServiceImpl implements BookService {
   }
 
   @Override
-  public AppResponse<List<BookProjection>> fetchAllBooks() {
-    List<BookProjection> allBooks = bookRepository.fetchAllBook();
-    AppResponse<List<BookProjection>> appResponse = new AppResponse<>();
+  public AppResponse<List<BookProjectionWithCount>> fetchAllBooks() {
+    List<BookProjectionWithCount> allBooks = bookRepository.fetchAllBook();
+    AppResponse<List<BookProjectionWithCount>> appResponse = new AppResponse<>();
 
     String message = String.format("Fetched all books successfully");
     log.info(message);
@@ -198,6 +198,19 @@ public class BookServiceImpl implements BookService {
     appResponse.setCode("00");
     appResponse.setMessage("Success");
 
+    return appResponse;
+  }
+
+  @Override
+  public AppResponse<List<BookProjection>> getStudentNotReturnedBooks(Long userId) {
+    userService.isStudent(userId);
+    List<BookProjection> booksNotReturnedByUser = bookTrackerRepository
+        .getBooksNotReturnedByUser(userId);
+
+    AppResponse<List<BookProjection>> appResponse = new AppResponse<>();
+    appResponse.setData(booksNotReturnedByUser);
+    appResponse.setCode("00");
+    appResponse.setMessage("Success");
     return appResponse;
   }
 }

@@ -1,7 +1,7 @@
 package edu.schoollibrary.repository;
 
 import edu.schoollibrary.entity.Book;
-import edu.schoollibrary.projection.BookProjection;
+import edu.schoollibrary.projection.BookProjectionWithCount;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -17,5 +17,5 @@ public interface BookRepository extends JpaRepository<Book,Long> {
       "from tbl_book book " +
       "join tbl_book_inventory inv " +
       "on book.id = inv.book_id", nativeQuery = true)
-  List<BookProjection> fetchAllBook();
+  List<BookProjectionWithCount> fetchAllBook();
 }

@@ -1,7 +1,7 @@
 package edu.schoollibrary.controller;
 
-
 import edu.schoollibrary.projection.BookProjection;
+import edu.schoollibrary.projection.BookProjectionWithCount;
 import edu.schoollibrary.request.BookInventoryRequest;
 import edu.schoollibrary.request.BookRequest;
 import edu.schoollibrary.request.BookSelectionRequest;
@@ -10,6 +10,7 @@ import edu.schoollibrary.service.BookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,21 +39,25 @@ public class BookController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping("/fetch-all")
-  public AppResponse<List<BookProjection>> fetchAllBooks(){
+  public AppResponse<List<BookProjectionWithCount>> fetchAllBooks(){
     return bookService.fetchAllBooks();
   }
-
 
   @ResponseStatus(HttpStatus.OK)
   @PostMapping("/borrow-book")
   public AppResponse<String> borrowBook(@RequestBody BookSelectionRequest bookSelectionRequest) {
     return bookService.studentBorrowBook(bookSelectionRequest);
   }
+
   @ResponseStatus(HttpStatus.OK)
   @PostMapping("/return-book")
   public AppResponse<String> returnBook(@RequestBody BookSelectionRequest bookSelectionRequest) {
     return bookService.studentReturnBook(bookSelectionRequest);
   }
 
-
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping("/books-in-user-custody/{user_id}")
+  public AppResponse<List<BookProjection>> getBooksNotReturnedByUser(@PathVariable("user_id") Long userId) {
+    return bookService.getStudentNotReturnedBooks(userId);
+  }
 }

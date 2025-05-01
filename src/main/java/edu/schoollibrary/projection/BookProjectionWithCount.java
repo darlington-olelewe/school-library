@@ -1,6 +1,6 @@
 package edu.schoollibrary.projection;
 
-public interface BookProjection {
+public interface BookProjectionWithCount {
   Long getId();
   String getTitle();
   String getAuthors();
@@ -8,4 +8,6 @@ public interface BookProjection {
   String getReview();
   int getYear();
   int getPages();
+  int getAvailableBookCount();
+  int getTotalBookCount();
 }
