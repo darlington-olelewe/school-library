@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class BookSelectionRequest {
-  private Long requesterId;
+  private String requesterId;
   private Long bookId;
 }

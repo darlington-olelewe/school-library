@@ -17,10 +17,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name="TBL_BOOK")
-public class Book {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+public class Book extends Base{
   private String title;
   private String authors;
   @Column(unique = true)

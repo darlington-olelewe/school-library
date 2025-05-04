@@ -15,10 +15,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "TBL_BOOK_INVENTORY")
-public class BookInventory {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+public class BookInventory extends Base{
+
   @Column(nullable = false, unique = true)
   private long bookId;
   private int totalAssignedToTheLibrary;

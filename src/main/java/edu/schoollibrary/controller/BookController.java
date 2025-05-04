@@ -6,6 +6,7 @@ import edu.schoollibrary.request.BookInventoryRequest;
 import edu.schoollibrary.request.BookRequest;
 import edu.schoollibrary.request.BookSelectionRequest;
 import edu.schoollibrary.response.AppResponse;
+import edu.schoollibrary.response.BookDetail;
 import edu.schoollibrary.service.BookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -39,7 +40,7 @@ public class BookController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping("/fetch-all")
-  public AppResponse<List<BookProjectionWithCount>> fetchAllBooks(){
+  public AppResponse<List<BookDetail>> fetchAllBooks(){
     return bookService.fetchAllBooks();
   }
 

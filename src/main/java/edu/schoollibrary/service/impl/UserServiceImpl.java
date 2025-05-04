@@ -1,11 +1,13 @@
 package edu.schoollibrary.service.impl;
 
 import edu.schoollibrary.entity.AppUser;
+import edu.schoollibrary.entity.LoggedInUser;
 import edu.schoollibrary.exception.AppException;
 import edu.schoollibrary.repository.AppUserRepository;
-import edu.schoollibrary.request.CreateUserPojo;
+import edu.schoollibrary.request.CreateUserRequest;
 import edu.schoollibrary.request.LoginRequest;
 import edu.schoollibrary.response.AppResponse;
+import edu.schoollibrary.service.NumberCodec;
 import edu.schoollibrary.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,26 +18,31 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
   private final AppUserRepository appUserRepository;
+  private final NumberCodec  numberCodec;
 
   @Override
-  public void createUser(CreateUserPojo createUserPojo) {
+  public void createUser(CreateUserRequest createUserRequest) {
 
     AppUser appUser = new AppUser();
-    appUser.setEmail(createUserPojo.getEmail().toLowerCase().trim());
-    appUser.setPassword(createUserPojo.getPassword());
-    appUser.setFirstName(createUserPojo.getFirstName());
-    appUser.setLastName(createUserPojo.getLastName());
+    appUser.setEmail(createUserRequest.getEmail().toLowerCase().trim());
+    appUser.setPassword(createUserRequest.getPassword());
+    appUser.setFirstName(createUserRequest.getFirstName());
+    appUser.setLastName(createUserRequest.getLastName());
     appUser.setCreatedBy("self");
     appUser.setRole("STUDENT");
     appUser.setEnabled(true);
     appUser.setCreatedAt(new Date());
 
-    appUserRepository.save(appUser);
+    try {
+      appUserRepository.save(appUser);
+    }catch (Exception e){
+      throw new AppException("Error creating user confirm email does not already exists", "99");
+    }
 
   }
 
   @Override
-  public AppResponse<AppUser> login(LoginRequest loginRequest) {
+  public AppResponse<LoggedInUser> login(LoginRequest loginRequest) {
     AppUser appUser = appUserRepository
         .findAppUserByEmailAndPassword(loginRequest.getEmail().toLowerCase().trim(), loginRequest.getPassword()).orElse(null);
 
@@ -43,8 +50,17 @@ public class UserServiceImpl implements UserService {
       throw new AppException("Invalid Email Or Password", "99");
     }
     appUser.setPassword("** hidden **");
-    AppResponse<AppUser> appResponse = new AppResponse<>();
-    appResponse.setData(appUser);
+
+    LoggedInUser loggedInUser = new LoggedInUser();
+    loggedInUser.setPassword(appUser.getPassword());
+    loggedInUser.setFirstName(appUser.getFirstName());
+    loggedInUser.setLastName(appUser.getLastName());
+    loggedInUser.setEmail(appUser.getEmail());
+    loggedInUser.setRole(appUser.getRole());
+    loggedInUser.setRequestId(numberCodec.encode(appUser.getId()));
+
+    AppResponse<LoggedInUser> appResponse = new AppResponse<>();
+    appResponse.setData(loggedInUser);
     appResponse.setCode("00");
     appResponse.setMessage("Success");
     return appResponse;

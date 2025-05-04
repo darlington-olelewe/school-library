@@ -1,15 +1,14 @@
 package edu.schoollibrary.controller;
 
 import edu.schoollibrary.entity.AppUser;
-import edu.schoollibrary.request.CreateUserPojo;
+import edu.schoollibrary.entity.LoggedInUser;
+import edu.schoollibrary.request.CreateUserRequest;
 import edu.schoollibrary.request.LoginRequest;
 import edu.schoollibrary.response.AppResponse;
 import edu.schoollibrary.response.CodeAndMessage;
 import edu.schoollibrary.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,14 +24,14 @@ public class AppUserController {
 
   @ResponseStatus(HttpStatus.OK)
   @PostMapping("/login")
-  public AppResponse<AppUser> loginUser(@RequestBody LoginRequest loginRequest) {
+  public AppResponse<LoggedInUser> loginUser(@RequestBody LoginRequest loginRequest) {
     return userService.login(loginRequest);
   }
 
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping("/sign-up")
-  public CodeAndMessage createUser(@RequestBody CreateUserPojo createUserPojo) {
-    userService.createUser(createUserPojo);
+  public CodeAndMessage createUser(@RequestBody CreateUserRequest createUserRequest) {
+    userService.createUser(createUserRequest);
     return new CodeAndMessage("00", "User created successfully");
   }
 }

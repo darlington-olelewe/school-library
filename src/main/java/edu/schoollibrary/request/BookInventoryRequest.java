@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class BookInventoryRequest {
-  private Long requesterId;
+  private String requesterId;
   private Long bookId;
   private Integer countAdded;
 }

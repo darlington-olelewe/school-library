@@ -4,7 +4,7 @@ package edu.schoollibrary.request;
 import lombok.Data;
 
 @Data
-public class CreateUserPojo {
+public class CreateUserRequest {
   private String firstName;
   private String lastName;
   private String email;

@@ -13,7 +13,9 @@ import edu.schoollibrary.request.BookInventoryRequest;
 import edu.schoollibrary.request.BookRequest;
 import edu.schoollibrary.request.BookSelectionRequest;
 import edu.schoollibrary.response.AppResponse;
+import edu.schoollibrary.response.BookDetail;
 import edu.schoollibrary.service.BookService;
+import edu.schoollibrary.service.NumberCodec;
 import edu.schoollibrary.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,11 +35,14 @@ public class BookServiceImpl implements BookService {
   private final BookRepository bookRepository;
   private final BookInventoryRepository bookInventoryRepository;
   private final BookTrackerRepository bookTrackerRepository;
+  private final NumberCodec numberCodec;
 
   @Override
   public AppResponse<String> addBook(BookRequest bookRequest) {
-    userService.isAdmin(bookRequest.getRequesterId());
+    long id = numberCodec.decode(bookRequest.getRequesterId());
+    userService.isAdmin(id);
 
+    //Builder Pattern
     Book book = Book.builder()
         .authors(bookRequest.getAuthors())
         .title(bookRequest.getTitle())
@@ -48,7 +53,12 @@ public class BookServiceImpl implements BookService {
         .pages(bookRequest.getPages())
         .build();
 
+    try{
     book = bookRepository.save(book);
+    }catch (Exception e){
+      throw new AppException("Error creating book inventory confirm book with ISBN " + book.getIsbn() + " does not already exists", "99");
+    }
+
     String message = String.format("Book with id %d added successfully", book.getId());
 
     log.info(message);
@@ -58,6 +68,7 @@ public class BookServiceImpl implements BookService {
         .totalInStock(0)
         .totalAssignedToTheLibrary(0)
         .build();
+
 
     bookInventoryRepository.save(bookInventory);
 
@@ -71,7 +82,8 @@ public class BookServiceImpl implements BookService {
 
   @Override
   public AppResponse<String> addInventory(BookInventoryRequest request) {
-    userService.isAdmin(request.getRequesterId());
+    long id = numberCodec.decode(request.getRequesterId());
+    userService.isAdmin(id);
 
     Optional<BookInventory> bookInventoryOptional = bookInventoryRepository.findUniqueInventoryByBookId(request.getBookId());
     AppResponse<String> appResponse = new AppResponse<>();
@@ -79,7 +91,16 @@ public class BookServiceImpl implements BookService {
       appResponse.setData("Book with id " + request.getBookId() + " not found");
       appResponse.setCode("99");
       appResponse.setMessage("Failed");
-      return appResponse;
+
+      throw new AppException(appResponse.getData(), appResponse.getCode());
+    }
+
+    if(request.getCountAdded() <= 0){
+      appResponse.setData("Count added must be greater than 0");
+      appResponse.setCode("99");
+      appResponse.setMessage("Failed");
+
+      throw new AppException(appResponse.getData(), appResponse.getCode());
     }
 
     BookInventory bookInventory = bookInventoryOptional.get();
@@ -102,14 +123,20 @@ public class BookServiceImpl implements BookService {
     return appResponse;
   }
 
+  // Decorator  pattern
   @Override
-  public AppResponse<List<BookProjectionWithCount>> fetchAllBooks() {
+  public AppResponse<List<BookDetail>> fetchAllBooks() {
     List<BookProjectionWithCount> allBooks = bookRepository.fetchAllBook();
-    AppResponse<List<BookProjectionWithCount>> appResponse = new AppResponse<>();
+
+    AppResponse<List<BookDetail>> appResponse = new AppResponse<>();
 
     String message = String.format("Fetched all books successfully");
     log.info(message);
-    appResponse.setData(allBooks);
+    appResponse.setData(
+        allBooks.stream()
+            .map(eachBook -> new BookDetail(eachBook))
+            .toList()
+    );
     appResponse.setCode("00");
     appResponse.setMessage("Success");
     return appResponse;
@@ -118,7 +145,8 @@ public class BookServiceImpl implements BookService {
   @Override
   @Transactional
   public AppResponse<String> studentBorrowBook(BookSelectionRequest request) {
-    userService.isStudent(request.getRequesterId());
+    long id = numberCodec.decode(request.getRequesterId());
+    userService.isStudent(id);
 
     Optional<BookInventory> bookInventoryOptional = bookInventoryRepository.findUniqueInventoryByBookId(request.getBookId());
     if(bookInventoryOptional.isEmpty()){
@@ -130,7 +158,7 @@ public class BookServiceImpl implements BookService {
 
 
     Optional<BookTracker> optionalBookTracker =  bookTrackerRepository
-        .findByBookIdAndUserIdAndReturned(request.getBookId(), request.getRequesterId(), "FALSE");
+        .findByBookIdAndUserIdAndReturned(request.getBookId(), id, "FALSE");
 
     if(optionalBookTracker.isPresent()){
       throw new AppException("Book with id " + request.getBookId() + " already borrowed by you", "99");
@@ -141,7 +169,7 @@ public class BookServiceImpl implements BookService {
     BookTracker bookTracker = BookTracker.builder()
         .bookId(request.getBookId())
         .count(1)
-        .userId(request.getRequesterId())
+        .userId(id)
         .pickUpDate(LocalDateTime.now())
         .returned("FALSE")
         .build();
@@ -163,7 +191,8 @@ public class BookServiceImpl implements BookService {
 
   @Override
   public AppResponse<String> studentReturnBook(BookSelectionRequest request) {
-    userService.isStudent(request.getRequesterId());
+    long id = numberCodec.decode(request.getRequesterId());
+    userService.isStudent(id);
 
     Optional<BookInventory> bookInventoryOptional = bookInventoryRepository.findUniqueInventoryByBookId(request.getBookId());
     if(bookInventoryOptional.isEmpty()){
@@ -174,7 +203,7 @@ public class BookServiceImpl implements BookService {
     int availableBookCount = bookInventory.getTotalInStock();
 
     Optional<BookTracker> optionalBookTracker =  bookTrackerRepository
-        .findByBookIdAndUserIdAndReturned(request.getBookId(), request.getRequesterId(), "FALSE");
+        .findByBookIdAndUserIdAndReturned(request.getBookId(), id, "FALSE");
 
     if(optionalBookTracker.isEmpty()){
       throw new AppException("Book with id " + request.getBookId() + " was not borrowed by you", "99");

@@ -18,10 +18,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "TBL_BOOK_TRACKER")
-public class BookTracker {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+public class BookTracker extends Base{
   private long bookId;
   private long userId;
   private int count;
