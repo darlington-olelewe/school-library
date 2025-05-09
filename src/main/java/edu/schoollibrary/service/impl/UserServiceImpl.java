@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -51,13 +52,8 @@ public class UserServiceImpl implements UserService {
     }
     appUser.setPassword("** hidden **");
 
-    LoggedInUser loggedInUser = new LoggedInUser();
-    loggedInUser.setPassword(appUser.getPassword());
-    loggedInUser.setFirstName(appUser.getFirstName());
-    loggedInUser.setLastName(appUser.getLastName());
-    loggedInUser.setEmail(appUser.getEmail());
-    loggedInUser.setRole(appUser.getRole());
-    loggedInUser.setRequestId(numberCodec.encode(appUser.getId()));
+    LoggedInUser loggedInUser = mapToLoggedInUser(appUser);
+
 
     AppResponse<LoggedInUser> appResponse = new AppResponse<>();
     appResponse.setData(loggedInUser);
@@ -85,5 +81,34 @@ public class UserServiceImpl implements UserService {
     if(!user.getRole().equalsIgnoreCase("STUDENT")){
       throw new AppException("User is not a student", "99");
     }
+  }
+
+  @Override
+  public AppResponse<List<LoggedInUser>> allUsers(String requesterId) {
+    isAdmin(numberCodec.decode(requesterId));
+
+    List<AppUser> allUsers = appUserRepository.findAll();
+
+    for(AppUser eachUser : allUsers){
+      System.out.println(eachUser.getEmail());
+    }
+    List<LoggedInUser> users = allUsers.stream().map(this::mapToLoggedInUser).toList();
+    AppResponse<List<LoggedInUser>> appResponse = new AppResponse<>();
+    appResponse.setData(users);
+    appResponse.setCode("00");
+    appResponse.setMessage("Success");
+    return appResponse;
+
+  }
+
+  private LoggedInUser mapToLoggedInUser(AppUser appUser){
+    LoggedInUser loggedInUser = new LoggedInUser();
+    loggedInUser.setPassword(appUser.getPassword());
+    loggedInUser.setFirstName(appUser.getFirstName());
+    loggedInUser.setLastName(appUser.getLastName());
+    loggedInUser.setEmail(appUser.getEmail());
+    loggedInUser.setRole(appUser.getRole());
+    loggedInUser.setRequestId(numberCodec.encode(appUser.getId()));
+    return loggedInUser;
   }
 }
